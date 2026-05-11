@@ -1,0 +1,1753 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PictoMath - Proyecto Métodos Numéricos</title>
+
+  <!-- Fuentes de Google-->
+  <link href="https://fonts.googleapis.com/css2?family=Fredoka+One&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet"/>
+
+  <style>
+    :root {
+      --fondo:       #0f0e17;
+      --carta:       #1a1830;
+      --panel:       #221f38;
+      --verde:       #6bcb77;
+      --amarillo:    #ffd93d;
+      --rojo:        #ff6b6b;
+      --azul:        #4d96ff;
+      --morado:      #c77dff;
+      --texto:       #fffffe;
+      --gris:        #a7a9be;
+      --borde:       #2e2b4a;
+      --sombra:      0 8px 32px rgba(0,0,0,0.5);
+      --redondeo:    14px;
+    }
+
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+
+    body {
+      font-family: 'Nunito', sans-serif;
+      background: var(--fondo);
+      color: var(--texto);
+      min-height: 100vh;
+    }
+
+    /* -------------------------------------------------------
+       PANTALLA DE INICIO
+    ------------------------------------------------------- */
+    #pantalla-inicio {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .titulo-juego {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(2.8rem, 7vw, 5.5rem);
+      background: linear-gradient(135deg, var(--azul), var(--morado), var(--rojo));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.4rem;
+    }
+
+    .subtitulo {
+      color: var(--gris);
+      font-size: 0.95rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      margin-bottom: 2.5rem;
+    }
+
+    .tarjeta-inicio {
+      background: var(--carta);
+      border: 1px solid var(--borde);
+      border-radius: var(--redondeo);
+      padding: 2.5rem;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: var(--sombra);
+    }
+
+    .tarjeta-inicio h2 {
+      font-family: 'Fredoka One', cursive;
+      color: var(--amarillo);
+      font-size: 1.4rem;
+      margin-bottom: 1.25rem;
+    }
+
+    .fila-jugador {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .circulo-color {
+      width: 16px; height: 16px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+
+    .fila-jugador input {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      color: var(--texto);
+      font-family: 'Nunito', sans-serif;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    .fila-jugador input:focus { border-color: var(--azul); }
+
+    /* -------------------------------------------------------
+       Botones
+    ------------------------------------------------------- */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.4rem;
+      padding: 0.7rem 1.5rem;
+      border-radius: 8px;
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.05rem;
+      cursor: pointer;
+      border: none;
+      transition: transform 0.15s, filter 0.15s;
+    }
+
+    .btn:hover  { transform: translateY(-2px); filter: brightness(1.12); }
+    .btn:active { transform: scale(0.97); }
+    .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .btn-principal { background: linear-gradient(135deg, var(--azul), var(--morado)); color: #fff; width: 100%; margin-top: 1rem; }
+    .btn-dado      { background: linear-gradient(135deg, var(--amarillo), var(--rojo)); color: #111; padding: 0.85rem 2rem; }
+    .btn-adivinar  { background: linear-gradient(135deg, var(--verde), #2ecc71); color: #fff; }
+    .btn-saltar    { background: var(--panel); color: var(--gris); border: 1px solid var(--borde); font-family: 'Nunito', sans-serif; font-size: 0.85rem; }
+    .btn-limpiar   { background: var(--panel); color: var(--gris); border: 1px solid var(--borde); font-family: 'Nunito', sans-serif; font-size: 0.82rem; padding: 0.45rem 0.9rem; }
+    .btn-lapiz     { background: var(--panel); color: var(--texto); border: 1px solid var(--borde); font-family: 'Nunito', sans-serif; font-size: 0.82rem; padding: 0.45rem 0.9rem; }
+    .btn-borrador  { background: var(--panel); color: var(--texto); border: 1px solid var(--borde); font-family: 'Nunito', sans-serif; font-size: 0.82rem; padding: 0.45rem 0.9rem; }
+
+    .btn-lapiz.activo    { border-color: var(--azul);  color: var(--azul); }
+    .btn-borrador.activo { border-color: var(--rojo);  color: var(--rojo); }
+
+    /* -------------------------------------------------------
+       PANTALLA PRINCIPAL DEL JUEGO
+    ------------------------------------------------------- */
+    #pantalla-juego {
+      display: none;
+      flex-direction: column;
+      min-height: 100vh;
+      padding: 1rem;
+    }
+
+    .cabecera-juego {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 1rem;
+      flex-wrap: wrap;
+      gap: 0.5rem;
+    }
+
+    .cabecera-juego .titulo {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.7rem;
+      background: linear-gradient(135deg, var(--azul), var(--morado));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+    }
+
+    .indicador-turno {
+      background: var(--carta);
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: 0.45rem 1.1rem;
+      font-size: 0.9rem;
+      font-weight: 700;
+    }
+
+    .layout-juego {
+      display: grid;
+      grid-template-columns: 1fr 300px;
+      gap: 1rem;
+      flex: 1;
+    }
+
+    @media (max-width: 860px) {
+      .layout-juego { grid-template-columns: 1fr; }
+    }
+
+    /* -------------------------------------------------------
+       TABLERO
+    ------------------------------------------------------- */
+    .contenedor-tablero {
+      background: var(--carta);
+      border: 1px solid var(--borde);
+      border-radius: var(--redondeo);
+      padding: 1.1rem;
+      box-shadow: var(--sombra);
+    }
+
+    .leyenda {
+      display: flex;
+      gap: 0.75rem;
+      flex-wrap: wrap;
+      margin-bottom: 0.75rem;
+      font-size: 0.72rem;
+      color: var(--gris);
+    }
+
+    .leyenda-item { display: flex; align-items: center; gap: 0.3rem; }
+    .leyenda-cuadro { width: 10px; height: 10px; border-radius: 2px; }
+
+    #tablero {
+      display: grid;
+      gap: 4px;
+    }
+
+    .casilla {
+      border-radius: 6px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 54px;
+      position: relative;
+      border: 1px solid rgba(255,255,255,0.05);
+      padding: 2px;
+      transition: transform 0.15s;
+      font-size: 0.62rem;
+      font-weight: 700;
+    }
+
+    .casilla:hover { transform: scale(1.06); z-index: 2; }
+
+    .casilla-num {
+      font-size: 0.52rem;
+      color: var(--gris);
+      position: absolute;
+      top: 3px;
+      left: 4px;
+    }
+
+    .casilla-icono { font-size: 1rem; }
+    .casilla-texto { font-size: 0.5rem; text-align: center; line-height: 1.2; }
+
+    .casilla.normal { background: #2a2745; }
+    .casilla.bonus  { background: #1a3a2a; border-color: rgba(107,203,119,0.3); }
+    .casilla.trampa { background: #3a1a1a; border-color: rgba(255,107,107,0.3); }
+    .casilla.inicio { background: #1a2a3a; border-color: rgba(77,150,255,0.4); }
+    .casilla.meta   { background: #2a1a3a; border-color: rgba(199,125,255,0.4); }
+
+    .fichas-fila {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 1px;
+      justify-content: center;
+      margin-top: 1px;
+    }
+
+    .ficha-token { font-size: 0.7rem; line-height: 1; }
+
+    /* -------------------------------------------------------
+       PANEL LATERAL
+    ------------------------------------------------------- */
+    .panel-lateral {
+      display: flex;
+      flex-direction: column;
+      gap: 0.75rem;
+    }
+
+    .tarjeta-panel {
+      background: var(--carta);
+      border: 1px solid var(--borde);
+      border-radius: var(--redondeo);
+      padding: 1rem;
+      box-shadow: var(--sombra);
+    }
+
+    .tarjeta-panel h3 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 0.95rem;
+      color: var(--amarillo);
+      margin-bottom: 0.7rem;
+    }
+
+    .lista-puntajes { list-style: none; display: flex; flex-direction: column; gap: 0.45rem; }
+
+    .item-puntaje {
+      display: flex;
+      align-items: center;
+      gap: 0.55rem;
+      padding: 0.4rem 0.7rem;
+      background: var(--panel);
+      border-radius: 8px;
+      font-size: 0.88rem;
+      font-weight: 700;
+      border: 1px solid transparent;
+      transition: border-color 0.3s;
+    }
+
+    .item-puntaje.activo { border-color: var(--azul); }
+
+    .punto-color    { width: 11px; height: 11px; border-radius: 50%; flex-shrink: 0; }
+    .nombre-jugador { flex: 1; }
+    .pos-jugador    { color: var(--gris); font-size: 0.75rem; }
+    .pts-jugador    { color: var(--amarillo); }
+
+    .area-dado { text-align: center; }
+
+    #cara-dado {
+      font-size: 3.8rem;
+      display: block;
+      margin: 0.5rem 0;
+      filter: drop-shadow(0 0 10px rgba(255,217,61,0.45));
+    }
+
+    .texto-dado { font-size: 0.82rem; color: var(--gris); margin-bottom: 0.7rem; min-height: 1.2em; }
+
+    .info-metodo {
+      background: var(--panel);
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: 0.55rem 0.75rem;
+      font-size: 0.7rem;
+      color: var(--gris);
+      line-height: 1.55;
+      margin-top: 0.5rem;
+    }
+
+    .info-metodo b { color: var(--azul); }
+
+    #log-juego {
+      display: flex;
+      flex-direction: column;
+      gap: 0.28rem;
+      max-height: 115px;
+      overflow-y: auto;
+      font-size: 0.76rem;
+      color: var(--gris);
+      padding-right: 3px;
+    }
+
+    #log-juego::-webkit-scrollbar { width: 3px; }
+    #log-juego::-webkit-scrollbar-thumb { background: var(--borde); border-radius: 2px; }
+
+    .entrada-log { padding: 0.22rem 0.5rem; background: var(--panel); border-radius: 4px; }
+    .entrada-log.importante { color: var(--amarillo); }
+
+    /* -------------------------------------------------------
+       MODALES
+    ------------------------------------------------------- */
+    .fondo-modal {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(10,9,23,0.82);
+      backdrop-filter: blur(5px);
+      z-index: 100;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+    }
+
+    .fondo-modal.visible { display: flex; }
+
+    .caja-modal {
+      background: var(--carta);
+      border: 1px solid var(--borde);
+      border-radius: var(--redondeo);
+      padding: 1.5rem;
+      max-width: 660px;
+      width: 100%;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.65);
+      animation: aparecer 0.28s ease;
+    }
+
+    @keyframes aparecer {
+      from { opacity: 0; transform: translateY(28px) scale(0.96); }
+      to   { opacity: 1; transform: translateY(0)   scale(1); }
+    }
+
+    .caja-modal.evento {
+      max-width: 360px;
+      text-align: center;
+    }
+
+    .icono-evento { font-size: 3.2rem; display: block; margin-bottom: 0.6rem; }
+
+    .caja-modal.evento h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.5rem;
+      margin-bottom: 0.4rem;
+    }
+
+    .caja-modal.evento p {
+      color: var(--gris);
+      font-size: 0.92rem;
+      line-height: 1.5;
+      margin-bottom: 1.2rem;
+    }
+
+    /* -------------------------------------------------------
+       MODAL DE DIBUJO
+    ------------------------------------------------------- */
+    .cabecera-modal {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 1rem;
+      margin-bottom: 0.9rem;
+    }
+
+    .cabecera-modal h2 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 1.3rem;
+    }
+
+    .palabra-dibujante {
+      background: var(--panel);
+      border: 1px dashed var(--amarillo);
+      border-radius: 8px;
+      padding: 0.4rem 1rem;
+      font-size: 1.05rem;
+      font-weight: 800;
+      color: var(--amarillo);
+      cursor: pointer;
+    }
+
+    .palabra-guion {
+      letter-spacing: 0.35em;
+      color: var(--gris);
+      font-size: 1.05rem;
+      font-weight: 700;
+    }
+
+    .barra-tiempo-fondo {
+      background: var(--panel);
+      border-radius: 99px;
+      height: 7px;
+      overflow: hidden;
+      margin-bottom: 0.3rem;
+    }
+
+    #barra-tiempo {
+      height: 100%;
+      border-radius: 99px;
+      background: linear-gradient(90deg, var(--verde), var(--amarillo));
+      transition: width 1s linear, background 1s;
+    }
+
+    #texto-tiempo { font-size: 0.8rem; color: var(--gris); text-align: right; margin-bottom: 0.6rem; }
+
+    .barra-herramientas {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      margin-bottom: 0.55rem;
+      flex-wrap: wrap;
+    }
+
+    .paleta { display: flex; gap: 4px; }
+
+    .muestra-color {
+      width: 21px; height: 21px;
+      border-radius: 50%;
+      cursor: pointer;
+      border: 2px solid transparent;
+      transition: transform 0.12s, border-color 0.12s;
+    }
+
+    .muestra-color:hover { transform: scale(1.22); }
+    .muestra-color.seleccionado { border-color: white; }
+
+    .slider-grosor {
+      -webkit-appearance: none;
+      height: 4px;
+      width: 75px;
+      border-radius: 2px;
+      background: var(--borde);
+      outline: none;
+    }
+
+    .slider-grosor::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 15px; height: 15px;
+      border-radius: 50%;
+      background: var(--azul);
+      cursor: pointer;
+    }
+
+    #canvas-dibujo {
+      display: block;
+      background: #ffffff;
+      border-radius: 8px;
+      border: 2px solid var(--borde);
+      cursor: crosshair;
+      width: 100%;
+      touch-action: none;
+    }
+
+    .area-adivinar {
+      display: flex;
+      gap: 0.5rem;
+      margin-top: 0.7rem;
+    }
+
+    .area-adivinar input {
+      flex: 1;
+      background: var(--panel);
+      border: 1px solid var(--borde);
+      border-radius: 8px;
+      padding: 0.62rem 1rem;
+      color: var(--texto);
+      font-family: 'Nunito', sans-serif;
+      font-size: 1rem;
+      font-weight: 700;
+      outline: none;
+      text-transform: uppercase;
+      transition: border-color 0.2s;
+    }
+
+    .area-adivinar input:focus { border-color: var(--verde); }
+
+    .historial-intentos {
+      max-height: 80px;
+      overflow-y: auto;
+      margin-top: 0.45rem;
+      display: flex;
+      flex-direction: column;
+      gap: 0.22rem;
+    }
+
+    .intento { font-size: 0.8rem; padding: 0.18rem 0.5rem; border-radius: 4px; background: var(--panel); }
+    .intento.correcto   { background: rgba(107,203,119,0.18); color: var(--verde); font-weight: 700; }
+    .intento.incorrecto { color: var(--gris); }
+
+    .pie-modal { display: flex; justify-content: flex-end; margin-top: 0.7rem; }
+
+    /* -------------------------------------------------------
+       PANTALLA FINAL
+    ------------------------------------------------------- */
+    #pantalla-fin {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    .tarjeta-ganador {
+      background: var(--carta);
+      border: 1px solid var(--borde);
+      border-radius: var(--redondeo);
+      padding: 2.5rem 2rem;
+      max-width: 460px;
+      width: 100%;
+      box-shadow: var(--sombra);
+    }
+
+    .tarjeta-ganador .emoji-ganador { font-size: 3.8rem; display: block; margin-bottom: 0.8rem; }
+
+    .tarjeta-ganador h1 {
+      font-family: 'Fredoka One', cursive;
+      font-size: 2.4rem;
+      background: linear-gradient(135deg, var(--amarillo), var(--rojo));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 0.4rem;
+    }
+
+    .nombre-ganador { font-size: 1.4rem; font-weight: 800; margin-bottom: 1.5rem; }
+
+    .lista-final { list-style: none; margin-bottom: 1.8rem; }
+    .item-final {
+      display: flex;
+      align-items: center;
+      gap: 0.7rem;
+      padding: 0.55rem 0.9rem;
+      background: var(--panel);
+      border-radius: 8px;
+      margin-bottom: 0.45rem;
+      font-weight: 700;
+      font-size: 0.92rem;
+    }
+
+    @keyframes rebote {
+      0%, 100% { transform: translateY(0); }
+      40% { transform: translateY(-9px); }
+      70% { transform: translateY(-4px); }
+    }
+
+    .animar-rebote { animation: rebote 0.55s ease; }
+
+    /* -------------------------------------------------------
+       MODAL PREVIO AL DIBUJO
+       Este modal le muestra la palabra al dibujante antes
+       de que empiece el canvas. Los demás deben voltear.
+    ------------------------------------------------------- */
+    .caja-modal.previo {
+      max-width: 400px;
+      text-align: center;
+    }
+
+    .previo-quien {
+      font-size: 0.88rem;
+      color: var(--gris);
+      margin-bottom: 0.5rem;
+    }
+
+    .previo-quien span {
+      font-weight: 800;
+      color: var(--texto);
+    }
+
+    /* La caja grande que muestra la palabra */
+    .caja-palabra {
+      background: var(--panel);
+      border: 2px solid var(--amarillo);
+      border-radius: 12px;
+      padding: 1.5rem 2rem;
+      margin: 1rem 0;
+      position: relative;
+      overflow: hidden;
+    }
+
+    /* Fondo decorativo detrás de la palabra */
+    .caja-palabra::before {
+      content: '🎨';
+      position: absolute;
+      font-size: 6rem;
+      opacity: 0.07;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+    }
+
+    .etiqueta-palabra {
+      font-size: 0.75rem;
+      color: var(--gris);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin-bottom: 0.5rem;
+    }
+
+    .texto-palabra-grande {
+      font-family: 'Fredoka One', cursive;
+      font-size: clamp(1.8rem, 5vw, 2.6rem);
+      color: var(--amarillo);
+      letter-spacing: 0.05em;
+      position: relative;
+      z-index: 1;
+    }
+
+    /* Aviso para que los demás voltéen */
+    .aviso-voltear {
+      background: rgba(255,107,107,0.12);
+      border: 1px solid rgba(255,107,107,0.3);
+      border-radius: 8px;
+      padding: 0.6rem 1rem;
+      font-size: 0.82rem;
+      color: var(--rojo);
+      margin-bottom: 1rem;
+    }
+
+    /* Contador regresivo grande */
+    .contador-grande {
+      font-family: 'Fredoka One', cursive;
+      font-size: 3rem;
+      color: var(--azul);
+      display: block;
+      margin-bottom: 0.5rem;
+      transition: color 0.3s;
+    }
+
+    .contador-grande.urgente { color: var(--rojo); }
+
+    .texto-contador {
+      font-size: 0.8rem;
+      color: var(--gris);
+      margin-bottom: 1rem;
+    }
+
+    /* Botón para saltarse la cuenta y arrancar ya */
+    .btn-listo { background: linear-gradient(135deg, var(--verde), #2ecc71); color: #fff; width: 100%; }
+  </style>
+</head>
+
+<body>
+
+<!-- =====================================================
+     PANTALLA DE INICIO
+===================================================== -->
+<div id="pantalla-inicio">
+  <h1 class="titulo-juego">🎨 PictoMath</h1>
+  <p class="subtitulo">Pictionary · Métodos Numéricos · 5to Semestre</p>
+
+  <div class="tarjeta-inicio">
+    <h2>👥 ¿Quiénes van a jugar?</h2>
+    <div id="contenedor-jugadores"></div>
+    <button class="btn btn-principal" onclick="iniciarJuego()">
+      🚀 ¡Empezar!
+    </button>
+  </div>
+</div>
+
+
+<!-- =====================================================
+     PANTALLA PRINCIPAL DEL JUEGO
+===================================================== -->
+<div id="pantalla-juego">
+
+  <div class="cabecera-juego">
+    <span class="titulo">🎨 PictoMath</span>
+    <div class="indicador-turno" id="indicador-turno">Cargando...</div>
+  </div>
+
+  <div class="layout-juego">
+
+    <!-- TABLERO -->
+    <div class="contenedor-tablero">
+      <div class="leyenda">
+        <div class="leyenda-item"><div class="leyenda-cuadro" style="background:#1a2a3a"></div>Inicio</div>
+        <div class="leyenda-item"><div class="leyenda-cuadro" style="background:#2a2745"></div>Normal</div>
+        <div class="leyenda-item"><div class="leyenda-cuadro" style="background:#1a3a2a"></div>⭐ Bonus</div>
+        <div class="leyenda-item"><div class="leyenda-cuadro" style="background:#3a1a1a"></div>💀 Trampa</div>
+        <div class="leyenda-item"><div class="leyenda-cuadro" style="background:#2a1a3a"></div>🏆 Meta</div>
+      </div>
+      <div id="tablero"></div>
+    </div>
+
+    <!-- PANEL LATERAL -->
+    <div class="panel-lateral">
+
+      <div class="tarjeta-panel">
+        <h3>🏅 Marcador</h3>
+        <ul class="lista-puntajes" id="lista-puntajes"></ul>
+      </div>
+
+      <div class="tarjeta-panel">
+        <h3>🎲 Dado (Newton-Raphson)</h3>
+        <div class="area-dado">
+          <span id="cara-dado">⚀</span>
+          <div class="texto-dado" id="texto-dado">Presiona para lanzar</div>
+          <button class="btn btn-dado" id="btn-dado" onclick="lanzarDado()">
+            🎲 Lanzar Dado
+          </button>
+          <div class="info-metodo" id="info-metodo">
+            El dado usa <b>Newton-Raphson</b> para calcular su valor.<br>
+            Lanza el dado para ver el proceso 👆
+          </div>
+        </div>
+      </div>
+
+      <div class="tarjeta-panel">
+        <h3>📋 Historial</h3>
+        <div id="log-juego"></div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+
+<!-- =====================================================
+     PANTALLA FINAL
+===================================================== -->
+<div id="pantalla-fin">
+  <div class="tarjeta-ganador">
+    <span class="emoji-ganador">🏆</span>
+    <h1>¡Ganador!</h1>
+    <div class="nombre-ganador" id="nombre-ganador"></div>
+    <ul class="lista-final" id="lista-final"></ul>
+    <button class="btn btn-principal" onclick="location.reload()">
+      🔄 Jugar de nuevo
+    </button>
+  </div>
+</div>
+
+
+<!-- =====================================================
+     MODAL: EVENTO DE CASILLA
+===================================================== -->
+<div class="fondo-modal" id="modal-evento">
+  <div class="caja-modal evento">
+    <span class="icono-evento" id="icono-evento">⭐</span>
+    <h2 id="titulo-evento">Evento</h2>
+    <p id="desc-evento">Descripción</p>
+    <button class="btn btn-principal" onclick="cerrarModalEvento()">¡Entendido!</button>
+  </div>
+</div>
+
+
+<!-- =====================================================
+     MODAL PREVIO: MOSTRAR PALABRA AL DIBUJANTE
+===================================================== -->
+<div class="fondo-modal" id="modal-previo">
+  <div class="caja-modal previo">
+
+    <p class="previo-quien">
+      Le toca dibujar a <span id="previo-nombre-jugador">...</span>
+    </p>
+
+    <!-- Aviso para que los otros no miren -->
+    <div class="aviso-voltear">
+      🙈 ¡Los demás jugadores deben voltear la pantalla!
+    </div>
+
+    <!-- Caja con la palabra -->
+    <div class="caja-palabra">
+      <div class="etiqueta-palabra">Tu palabra es:</div>
+      <div class="texto-palabra-grande" id="previo-palabra">...</div>
+    </div>
+
+    <!-- Contador regresivo antes de abrir el canvas -->
+    <span class="contador-grande" id="previo-contador">5</span>
+    <div class="texto-contador">segundos para que todos estén listos...</div>
+
+    <!-- Botón para arrancar antes de que termine el contador -->
+    <button class="btn btn-listo" onclick="arrancarDesdePrevio()">
+      ✅ ¡Listo, a dibujar!
+    </button>
+
+  </div>
+</div>
+
+
+<!-- =====================================================
+     MODAL: DIBUJO Y ADIVINANZA
+===================================================== -->
+<div class="fondo-modal" id="modal-dibujo">
+  <div class="caja-modal">
+
+    <div class="cabecera-modal">
+      <div>
+        <h2 id="titulo-modal-dibujo">🎨 ¡A dibujar!</h2>
+        <p style="color:var(--gris);font-size:0.82rem">Dibuja sin escribir la palabra</p>
+      </div>
+      <div>
+        <div id="palabra-para-dibujante" class="palabra-dibujante">
+          👆 Toca para ver la palabra
+        </div>
+        <div id="guiones-palabra" class="palabra-guion"></div>
+      </div>
+    </div>
+
+    <div class="barra-tiempo-fondo">
+      <div id="barra-tiempo" style="width:100%"></div>
+    </div>
+    <div id="texto-tiempo">⏱ 60s</div>
+
+    <div class="barra-herramientas">
+      <button class="btn btn-lapiz activo"  id="btn-lapiz"    onclick="cambiarHerramienta('lapiz')">✏️ Lápiz</button>
+      <button class="btn btn-borrador"      id="btn-borrador" onclick="cambiarHerramienta('borrador')">🧹 Borrador</button>
+      <button class="btn btn-limpiar"       onclick="limpiarCanvas()">🗑️ Limpiar</button>
+      <div class="paleta" id="paleta-colores"></div>
+      <input type="range" class="slider-grosor" id="slider-grosor" min="2" max="28" value="6">
+    </div>
+
+    <canvas id="canvas-dibujo" width="580" height="270"></canvas>
+
+    <div class="area-adivinar">
+      <input
+        type="text"
+        id="input-respuesta"
+        placeholder="Escribe tu respuesta y presiona Enter..."
+        onkeydown="teclaRespuesta(event)"
+        autocomplete="off"
+      />
+      <button class="btn btn-adivinar" onclick="enviarRespuesta()">✅</button>
+    </div>
+
+    <div class="historial-intentos" id="historial-intentos"></div>
+
+    <div class="pie-modal">
+      <button class="btn btn-saltar" onclick="saltarRonda()">⏭️ Saltar ronda</button>
+    </div>
+
+  </div>
+</div>
+
+
+<!-- =====================================================
+     JAVASCRIPT
+===================================================== -->
+<script>
+
+/* ================================================
+   DATOS DEL JUEGO
+================================================ */
+
+const COLORES_JUGADORES = ['#ff6b6b', '#4d96ff', '#6bcb77', '#ffd93d'];
+const EMOJIS_JUGADORES  = ['🦁', '🐯', '🦊', '🐼'];
+const CARAS_DADO        = ['⚀', '⚁', '⚂', '⚃', '⚄', '⚅'];
+
+const TOTAL_CASILLAS   = 30;
+const COLUMNAS_TABLERO = 6;
+const TIEMPO_RONDA     = 60;
+
+const PALABRAS = [
+  'GATO', 'PERRO', 'CASA', 'ÁRBOL', 'PELOTA', 'SOL', 'LUNA', 'ESTRELLA',
+  'MONTAÑA', 'RÍO', 'BARCO', 'AVIÓN', 'TREN', 'BICICLETA', 'MARIPOSA',
+  'FLOR', 'PÁJARO', 'PEZ', 'ELEFANTE', 'JIRAFA', 'PIANO', 'GUITARRA',
+  'COMPUTADORA', 'TELÉFONO', 'LIBRO', 'LÁPIZ', 'SOMBRERO', 'ZAPATO',
+  'CORAZÓN', 'RELOJ', 'NUBE', 'LLUVIA', 'NIEVE', 'FUEGO', 'AGUA',
+  'HELADO', 'PIZZA', 'HAMBURGUESA', 'MANZANA', 'NARANJA', 'COHETE',
+  'CASTILLO', 'DRAGÓN', 'VOLCÁN', 'SUBMARINO'
+];
+
+/*
+  Tipos de casillas del tablero.
+  - 'inicio' = casilla 0
+  - 'meta'   = casilla 29
+  - 'bonus'  = ganas puntos y avanzas
+  - 'trampa' = pierdes puntos y retrocedes
+  - 'normal' = ronda de dibujo normal
+*/
+const TIPOS_CASILLAS = (() => {
+  const t = Array(TOTAL_CASILLAS).fill('normal');
+  t[0]                   = 'inicio';
+  t[TOTAL_CASILLAS - 1]  = 'meta';
+  [4, 9, 14, 19, 24].forEach(i => { if (i < TOTAL_CASILLAS - 1) t[i] = 'bonus';  });
+  [6, 11, 16, 21, 26].forEach(i => { if (i < TOTAL_CASILLAS - 1) t[i] = 'trampa'; });
+  return t;
+})();
+
+const INFO_CASILLA = {
+  normal: { icono: '⬛', texto: 'Normal' },
+  bonus:  { icono: '⭐', texto: 'Bonus'  },
+  trampa: { icono: '💀', texto: 'Trampa' },
+  inicio: { icono: '🚦', texto: 'Inicio' },
+  meta:   { icono: '🏆', texto: 'Meta'   },
+};
+
+/* ================================================
+   ESTADO DEL JUEGO
+================================================ */
+
+let jugadores       = [];
+let turnoActual     = 0;
+let palabraActual   = '';
+let intervaloTiempo = null;
+let tiempoRestante  = TIEMPO_RONDA;
+let callbackEvento  = null;
+
+/* ================================================
+   MÉTODO NUMÉRICO: NEWTON-RAPHSON
+   ------------------------------------------------
+   Para el dado, necesito un número del 1 al 6.
+   En lugar de usar Math.random() directamente,
+   aplico Newton-Raphson para encontrar la raíz de
+   una función que depende de una semilla aleatoria.
+
+   La función que uso es:
+     f(x)  = x^3 - 3x - semilla*8
+     f'(x) = 3x^2 - 3
+
+   La fórmula iterativa de Newton-Raphson es:
+     x_(n+1) = x_n - f(x_n) / f'(x_n)
+
+   Una vez que converge, convierto la raíz a 1-6:
+     dado = (floor(|raiz| * 100) mod 6) + 1
+================================================ */
+
+/**
+ * newtonRaphson
+ * Busca la raíz de f(x) = x^3 - 3x - semilla*8
+ *
+ * @param {number} semilla    - Modifica la función (viene de Math.random)
+ * @param {number} x0         - Punto de inicio
+ * @param {number} tolerancia - Qué tan exacto queremos el resultado
+ * @param {number} maxIter    - Máximo de vueltas del ciclo
+ */
+function newtonRaphson(semilla, x0, tolerancia, maxIter) {
+
+  // Si no paso parámetros opcionales, uso estos por defecto
+  if (x0         === undefined) x0         = 2.0;
+  if (tolerancia === undefined) tolerancia = 1e-6;
+  if (maxIter    === undefined) maxIter    = 50;
+
+  // Defino la función y su derivada
+  // f(x)  = x^3 - 3x - semilla*8
+  // f'(x) = 3x^2 - 3
+  var f  = function(x) { return x*x*x - 3*x - semilla*8; };
+  var df = function(x) { return 3*x*x - 3; };
+
+  var x     = x0;
+  var pasos = [];  // Guardo cada iteración para mostrarlo en pantalla
+
+  for (var i = 0; i < maxIter; i++) {
+
+    var fx  = f(x);
+    var dfx = df(x);
+
+    // Si la derivada es casi 0, el método no puede seguir
+    // (dividiría entre 0), así que muevo el punto un poco
+    if (Math.abs(dfx) < 1e-10) {
+      x += 0.3;
+      continue;
+    }
+
+    // Fórmula de Newton-Raphson
+    var xSiguiente = x - fx / dfx;
+
+    // Guardo este paso para mostrarlo en el panel
+    pasos.push({
+      iteracion:  i,
+      x:          x,
+      fx:         fx,
+      xSiguiente: xSiguiente
+    });
+
+    // Si la diferencia entre iteraciones es muy pequeña, ya convergió
+    if (Math.abs(xSiguiente - x) < tolerancia) {
+      return {
+        raiz:        xSiguiente,
+        iteraciones: i + 1,
+        pasos:       pasos
+      };
+    }
+
+    x = xSiguiente;
+  }
+
+  // Si no convergió en maxIter iteraciones, devuelvo lo que tengo
+  return { raiz: x, iteraciones: maxIter, pasos: pasos };
+}
+
+/**
+ * calcularDadoNR
+ * Usa Newton-Raphson para obtener un número del 1 al 6.
+ * Esto es lo que llamamos "integrar el método numérico al juego".
+ */
+function calcularDadoNR() {
+
+  // Genero una semilla y un punto inicial aleatorios
+  var semilla = Math.random();
+  var x0      = (Math.random() - 0.5) * 4 + 2.5;  // entre 0.5 y 4.5
+
+  var resultado = newtonRaphson(semilla, x0);
+
+  // Convierto la raíz al rango 1-6
+  // Uso Math.abs porque la raíz puede ser negativa
+  var valorDado = (Math.floor(Math.abs(resultado.raiz) * 100) % 6) + 1;
+
+  return {
+    valor:        valorDado,
+    semilla:      semilla,
+    puntoInicial: x0,
+    raiz:         resultado.raiz,
+    iteraciones:  resultado.iteraciones,
+    pasos:        resultado.pasos
+  };
+}
+
+/* ================================================
+   PANTALLA DE INICIO
+================================================ */
+
+function generarFilasJugadores() {
+  var contenedor = document.getElementById('contenedor-jugadores');
+  contenedor.innerHTML = '';
+
+  for (var i = 0; i < 4; i++) {
+    var fila       = document.createElement('div');
+    fila.className = 'fila-jugador';
+    fila.innerHTML =
+      '<div class="circulo-color" style="background:' + COLORES_JUGADORES[i] + '"></div>' +
+      '<input type="text" id="nombre-j' + i + '" ' +
+        'placeholder="Jugador ' + (i+1) + (i >= 2 ? ' (opcional)' : '') + '" ' +
+        'value="' + (i < 2 ? 'Jugador ' + (i+1) : '') + '">';
+    contenedor.appendChild(fila);
+  }
+}
+
+function iniciarJuego() {
+  jugadores = [];
+
+  for (var i = 0; i < 4; i++) {
+    var nombre = document.getElementById('nombre-j' + i).value.trim();
+    if (nombre) {
+      jugadores.push({
+        id:          i,
+        nombre:      nombre,
+        color:       COLORES_JUGADORES[i],
+        emoji:       EMOJIS_JUGADORES[i],
+        posicion:    0,
+        puntos:      0,
+        perderTurno: false
+      });
+    }
+  }
+
+  if (jugadores.length < 2) {
+    alert('¡Necesitas al menos 2 jugadores para jugar!');
+    return;
+  }
+
+  turnoActual = 0;
+
+  document.getElementById('pantalla-inicio').style.display = 'none';
+  document.getElementById('pantalla-juego').style.display  = 'flex';
+
+  construirTablero();
+  actualizarMarcador();
+  actualizarTurno();
+  agregarLog('¡El juego empezó! 🎉', true);
+}
+
+/* ================================================
+   TABLERO
+================================================ */
+
+function construirTablero() {
+  var tablero    = document.getElementById('tablero');
+  tablero.innerHTML = '';
+  tablero.style.gridTemplateColumns = 'repeat(' + COLUMNAS_TABLERO + ', 1fr)';
+
+  for (var i = 0; i < TOTAL_CASILLAS; i++) {
+    var tipo   = TIPOS_CASILLAS[i];
+    var info   = INFO_CASILLA[tipo] || INFO_CASILLA.normal;
+
+    var casilla       = document.createElement('div');
+    casilla.className = 'casilla ' + tipo;
+    casilla.id        = 'casilla-' + i;
+    casilla.innerHTML =
+      '<span class="casilla-num">' + i + '</span>' +
+      '<span class="casilla-icono">' + info.icono + '</span>' +
+      '<span class="casilla-texto">' + info.texto + '</span>' +
+      '<div class="fichas-fila" id="fichas-' + i + '"></div>';
+
+    tablero.appendChild(casilla);
+  }
+
+  renderizarFichas();
+}
+
+function renderizarFichas() {
+  // Limpiar primero
+  for (var i = 0; i < TOTAL_CASILLAS; i++) {
+    var el = document.getElementById('fichas-' + i);
+    if (el) el.innerHTML = '';
+  }
+
+  // Poner cada ficha en su casilla
+  jugadores.forEach(function(j) {
+    var fichasFila = document.getElementById('fichas-' + j.posicion);
+    if (fichasFila) {
+      var span       = document.createElement('span');
+      span.className = 'ficha-token';
+      span.textContent = j.emoji;
+      span.title       = j.nombre;
+      fichasFila.appendChild(span);
+    }
+  });
+}
+
+/* ================================================
+   MARCADOR Y TURNO
+================================================ */
+
+function actualizarMarcador() {
+  var lista    = document.getElementById('lista-puntajes');
+  lista.innerHTML = '';
+
+  // Ordenar por puntos (mayor primero)
+  var ordenados = jugadores.slice().sort(function(a, b) { return b.puntos - a.puntos; });
+
+  ordenados.forEach(function(j) {
+    var li       = document.createElement('li');
+    li.className = 'item-puntaje' + (j.id === jugadores[turnoActual].id ? ' activo' : '');
+    li.innerHTML =
+      '<div class="punto-color" style="background:' + j.color + '"></div>' +
+      '<span class="nombre-jugador">' + j.emoji + ' ' + j.nombre + '</span>' +
+      '<span class="pos-jugador">pos ' + j.posicion + '</span>' +
+      '<span class="pts-jugador">⭐' + j.puntos + '</span>';
+    lista.appendChild(li);
+  });
+}
+
+function actualizarTurno() {
+  var j = jugadores[turnoActual];
+  document.getElementById('indicador-turno').innerHTML =
+    '<span style="color:' + j.color + '">' + j.emoji + ' ' + j.nombre + '</span> — lanza el dado';
+  document.getElementById('btn-dado').disabled = false;
+}
+
+/* ================================================
+   LOG
+================================================ */
+
+function agregarLog(mensaje, importante) {
+  var log   = document.getElementById('log-juego');
+  var entry = document.createElement('div');
+  entry.className   = 'entrada-log' + (importante ? ' importante' : '');
+  entry.textContent = mensaje;
+  log.prepend(entry);
+
+  while (log.children.length > 25) {
+    log.lastChild.remove();
+  }
+}
+
+/* ================================================
+   LANZAR DADO
+================================================ */
+
+function lanzarDado() {
+  var j = jugadores[turnoActual];
+  document.getElementById('btn-dado').disabled = true;
+
+  // Llamar al método Newton-Raphson para el valor del dado
+  var resultado = calcularDadoNR();
+  var valor     = resultado.valor;
+
+  // Animación del dado
+  var caraDado  = document.getElementById('cara-dado');
+  var fotograma = 0;
+
+  var animacion = setInterval(function() {
+    caraDado.textContent = CARAS_DADO[Math.floor(Math.random() * 6)];
+    fotograma++;
+
+    if (fotograma >= 10) {
+      clearInterval(animacion);
+      caraDado.textContent = CARAS_DADO[valor - 1];
+      caraDado.classList.add('animar-rebote');
+      setTimeout(function() { caraDado.classList.remove('animar-rebote'); }, 600);
+    }
+  }, 65);
+
+  // Mostrar datos del método en el panel
+  document.getElementById('texto-dado').textContent =
+    'Salió: ' + valor + ' | Raíz ≈ ' + resultado.raiz.toFixed(4);
+
+  document.getElementById('info-metodo').innerHTML =
+    '<b>Semilla:</b> ' + resultado.semilla.toFixed(4) + '<br>' +
+    '<b>x₀ inicial:</b> ' + resultado.puntoInicial.toFixed(3) + '<br>' +
+    '<b>Raíz encontrada:</b> ' + resultado.raiz.toFixed(5) + '<br>' +
+    '<b>Iteraciones:</b> ' + resultado.iteraciones + '<br>' +
+    '<b>Mapeo:</b> floor(|' + resultado.raiz.toFixed(3) + '|×100) mod 6 + 1 = <b>' + valor + '</b>';
+
+  agregarLog(j.emoji + ' ' + j.nombre + ' sacó ' + valor + ' (NR: ' + resultado.iteraciones + ' iter.)');
+
+  // Verificar si pierde turno por trampa anterior
+  if (j.perderTurno) {
+    j.perderTurno = false;
+    agregarLog(j.emoji + ' ' + j.nombre + ' pierde su turno 💀', true);
+
+    setTimeout(function() {
+      mostrarModalEvento(
+        '💀',
+        '¡Turno perdido!',
+        j.nombre + ' cayó en una trampa el turno anterior y pierde su turno. ¡Más suerte la próxima!',
+        function() { siguienteTurno(); }
+      );
+    }, 900);
+    return;
+  }
+
+  // Mover al jugador
+  setTimeout(function() { moverJugador(turnoActual, valor); }, 900);
+}
+
+/* ================================================
+   MOVER JUGADOR (casilla por casilla)
+================================================ */
+
+function moverJugador(idxJugador, pasos) {
+  var j          = jugadores[idxJugador];
+  var posDestino = Math.min(j.posicion + pasos, TOTAL_CASILLAS - 1);
+  var totalPasos = posDestino - j.posicion;
+  var movidos    = 0;
+
+  function avanzarUnaCasilla() {
+    if (movidos < totalPasos) {
+      j.posicion++;
+      renderizarFichas();
+
+      // Highlight de la casilla actual
+      var casilla = document.getElementById('casilla-' + j.posicion);
+      if (casilla) {
+        casilla.style.outline = '2px solid ' + j.color;
+        setTimeout(function() { casilla.style.outline = ''; }, 200);
+      }
+
+      movidos++;
+      setTimeout(avanzarUnaCasilla, 180);
+
+    } else {
+      actualizarMarcador();
+      procesarCasilla(idxJugador);
+    }
+  }
+
+  avanzarUnaCasilla();
+}
+
+/* ================================================
+   PROCESAR EVENTO DE CASILLA
+================================================ */
+
+function procesarCasilla(idxJugador) {
+  var j    = jugadores[idxJugador];
+  var tipo = TIPOS_CASILLAS[j.posicion];
+
+  if (j.posicion >= TOTAL_CASILLAS - 1) {
+    j.puntos += 10;
+    actualizarMarcador();
+    agregarLog('🏆 ¡' + j.nombre + ' llegó a la meta! +10 pts', true);
+    mostrarPantallaFinal();
+    return;
+  }
+
+  if (tipo === 'bonus') {
+    agregarLog('⭐ ' + j.nombre + ' cayó en BONUS! +3 pts, avanza 2', true);
+    mostrarModalEvento(
+      '⭐',
+      '¡Casilla Bonus!',
+      j.emoji + ' ' + j.nombre + ' gana 3 puntos y avanza 2 casillas extra. ¡Suerte!',
+      function() {
+        j.puntos += 3;
+        moverJugador(idxJugador, 2);
+      }
+    );
+
+  } else if (tipo === 'trampa') {
+    agregarLog('💀 ' + j.nombre + ' cayó en TRAMPA! -2 pts, retrocede 2', true);
+    mostrarModalEvento(
+      '💀',
+      '¡Casilla Trampa!',
+      j.emoji + ' ' + j.nombre + ' pierde 2 puntos, retrocede 2 casillas y pierde el siguiente turno. ¡Cuidado!',
+      function() {
+        j.puntos      = Math.max(0, j.puntos - 2);
+        j.posicion    = Math.max(0, j.posicion - 2);
+        j.perderTurno = true;
+        renderizarFichas();
+        actualizarMarcador();
+        iniciarRondaDibujo();
+      }
+    );
+
+  } else {
+    // Casilla normal → ronda de dibujo
+    iniciarRondaDibujo();
+  }
+}
+
+/* ================================================
+   MODAL DE EVENTO
+================================================ */
+
+function mostrarModalEvento(icono, titulo, desc, callback) {
+  document.getElementById('icono-evento').textContent  = icono;
+  document.getElementById('titulo-evento').textContent = titulo;
+  document.getElementById('desc-evento').textContent   = desc;
+  callbackEvento = callback || null;
+  document.getElementById('modal-evento').classList.add('visible');
+}
+
+function cerrarModalEvento() {
+  document.getElementById('modal-evento').classList.remove('visible');
+  if (callbackEvento) {
+    var cb     = callbackEvento;
+    callbackEvento = null;
+    cb();
+  }
+}
+
+/* ================================================
+   RONDA DE DIBUJO
+================================================ */
+
+// Variable para el intervalo del contador previo
+var intervaloPrevio = null;
+
+function iniciarRondaDibujo() {
+  palabraActual = PALABRAS[Math.floor(Math.random() * PALABRAS.length)];
+  var dibujante = jugadores[turnoActual];
+
+  agregarLog('🎨 ' + dibujante.emoji + ' ' + dibujante.nombre + ' dibuja...');
+
+  mostrarModalPrevio(dibujante, palabraActual);
+}
+
+/*
+  mostrarModalPrevio
+  Muestra la palabra al dibujante con un contador de 5 segundos.
+  Cuando termina el contador (o el jugador presiona "Listo"),
+  se abre el canvas de dibujo.
+*/
+function mostrarModalPrevio(dibujante, palabra) {
+  document.getElementById('previo-nombre-jugador').innerHTML =
+    '<span style="color:' + dibujante.color + '">' + dibujante.emoji + ' ' + dibujante.nombre + '</span>';
+
+  document.getElementById('previo-palabra').textContent = palabra;
+
+  // Iniciar el contador en 5
+  var cuentaAtras = 5;
+  document.getElementById('previo-contador').textContent = cuentaAtras;
+  document.getElementById('previo-contador').classList.remove('urgente');
+
+  document.getElementById('modal-previo').classList.add('visible');
+
+  clearInterval(intervaloPrevio);
+
+  intervaloPrevio = setInterval(function() {
+    cuentaAtras--;
+    var contadorEl = document.getElementById('previo-contador');
+    contadorEl.textContent = cuentaAtras;
+
+    if (cuentaAtras <= 2) {
+      contadorEl.classList.add('urgente');
+    }
+
+    if (cuentaAtras <= 0) {
+      clearInterval(intervaloPrevio);
+      arrancarDesdePrevio();
+    }
+  }, 1000);
+}
+
+/*
+  arrancarDesdePrevio
+  Se llama cuando el contador llega a 0 o el jugador
+  presiona el botón "¡Listo, a dibujar!".
+  Cierra el modal previo y abre el canvas.
+*/
+function arrancarDesdePrevio() {
+  // Parar el contador por si el jugador presionó el botón antes
+  clearInterval(intervaloPrevio);
+
+  // Cerrar modal previo
+  document.getElementById('modal-previo').classList.remove('visible');
+
+  var dibujante = jugadores[turnoActual];
+
+  // Configurar el modal de dibujo
+  document.getElementById('titulo-modal-dibujo').textContent =
+    '🎨 ' + dibujante.emoji + ' ' + dibujante.nombre + ' dibuja';
+
+  // En el modal de dibujo ya no necesito el botón de "ver palabra"
+  // porque el dibujante ya la vio. Solo la muestro directamente.
+  var palabraDiv         = document.getElementById('palabra-para-dibujante');
+  palabraDiv.textContent = palabraActual;
+  palabraDiv.onclick     = null;
+
+  // Los demás ven guiones según la cantidad de letras
+  var guiones = '';
+  for (var i = 0; i < palabraActual.length; i++) {
+    guiones += (palabraActual[i] === ' ') ? '   ' : '_ ';
+  }
+  document.getElementById('guiones-palabra').textContent = guiones;
+
+  document.getElementById('historial-intentos').innerHTML = '';
+  document.getElementById('input-respuesta').value        = '';
+
+  // Abrir canvas y arrancar temporizador
+  document.getElementById('modal-dibujo').classList.add('visible');
+  limpiarCanvas();
+  iniciarCanvas();
+  iniciarTemporizador();
+}
+
+/* ================================================
+   CANVAS DE DIBUJO
+================================================ */
+
+var dibujando    = false;
+var ultimoX      = 0;
+var ultimoY      = 0;
+var herramienta  = 'lapiz';
+var colorActual  = '#222222';
+var grosorActual = 6;
+var ctx;  // Contexto del canvas 2D
+
+var PALETA = [
+  '#222222', '#e74c3c', '#e67e22', '#f1c40f',
+  '#2ecc71', '#3498db', '#9b59b6', '#ffffff',
+  '#795548', '#607d8b'
+];
+
+function iniciarCanvas() {
+  var canvas = document.getElementById('canvas-dibujo');
+  ctx        = canvas.getContext('2d');
+
+  // Ajustar ancho al contenedor
+  var anchoContenedor = canvas.parentElement.clientWidth - 48;
+  canvas.width  = Math.max(380, anchoContenedor);
+  canvas.height = 270;
+
+  // Fondo blanco
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+  // Crear paleta de colores
+  var paleta   = document.getElementById('paleta-colores');
+  paleta.innerHTML = '';
+
+  PALETA.forEach(function(color) {
+    var muestra       = document.createElement('div');
+    muestra.className = 'muestra-color' + (color === colorActual ? ' seleccionado' : '');
+    muestra.style.background = color;
+    if (color === '#ffffff') muestra.style.border = '2px solid #666';
+
+    muestra.onclick = function() {
+      colorActual = color;
+      cambiarHerramienta('lapiz');
+      document.querySelectorAll('.muestra-color').forEach(function(m) {
+        m.classList.remove('seleccionado');
+      });
+      muestra.classList.add('seleccionado');
+    };
+
+    paleta.appendChild(muestra);
+  });
+
+  // Slider de grosor del pincel
+  var slider   = document.getElementById('slider-grosor');
+  slider.value = grosorActual;
+  slider.oninput = function(e) { grosorActual = parseInt(e.target.value); };
+
+  // Eventos de ratón
+  canvas.onmousedown  = iniciarTrazo;
+  canvas.onmousemove  = continuarTrazo;
+  canvas.onmouseup    = detenerTrazo;
+  canvas.onmouseleave = detenerTrazo;
+
+  // Eventos táctiles (para celular)
+  canvas.ontouchstart = function(e) { e.preventDefault(); iniciarTrazo(e.touches[0]); };
+  canvas.ontouchmove  = function(e) { e.preventDefault(); continuarTrazo(e.touches[0]); };
+  canvas.ontouchend   = detenerTrazo;
+}
+
+// Convierte la posición del mouse a coordenadas del canvas
+function obtenerPosicion(evento) {
+  var canvas = document.getElementById('canvas-dibujo');
+  var rect   = canvas.getBoundingClientRect();
+  var escalaX = canvas.width  / rect.width;
+  var escalaY = canvas.height / rect.height;
+  return {
+    x: (evento.clientX - rect.left) * escalaX,
+    y: (evento.clientY - rect.top)  * escalaY
+  };
+}
+
+function iniciarTrazo(e) {
+  dibujando = true;
+  var pos   = obtenerPosicion(e);
+  ultimoX   = pos.x;
+  ultimoY   = pos.y;
+}
+
+function continuarTrazo(e) {
+  if (!dibujando) return;
+  var canvas = document.getElementById('canvas-dibujo');
+  var pos    = obtenerPosicion(e);
+
+  ctx.beginPath();
+  ctx.moveTo(ultimoX, ultimoY);
+  ctx.lineTo(pos.x, pos.y);
+
+  if (herramienta === 'borrador') {
+    ctx.strokeStyle = '#ffffff';
+    ctx.lineWidth   = grosorActual * 3;  // El borrador es más grueso
+  } else {
+    ctx.strokeStyle = colorActual;
+    ctx.lineWidth   = grosorActual;
+  }
+
+  ctx.lineCap  = 'round';
+  ctx.lineJoin = 'round';
+  ctx.stroke();
+
+  ultimoX = pos.x;
+  ultimoY = pos.y;
+}
+
+function detenerTrazo() {
+  dibujando = false;
+}
+
+function limpiarCanvas() {
+  if (!ctx) return;
+  var canvas = document.getElementById('canvas-dibujo');
+  ctx.fillStyle = '#ffffff';
+  ctx.fillRect(0, 0, canvas.width, canvas.height);
+}
+
+function cambiarHerramienta(nueva) {
+  herramienta = nueva;
+  document.getElementById('btn-lapiz').classList.toggle('activo',    nueva === 'lapiz');
+  document.getElementById('btn-borrador').classList.toggle('activo', nueva === 'borrador');
+}
+
+/* ================================================
+   TEMPORIZADOR
+================================================ */
+
+function iniciarTemporizador() {
+  tiempoRestante = TIEMPO_RONDA;
+  actualizarBarraTiempo();
+
+  clearInterval(intervaloTiempo);
+  intervaloTiempo = setInterval(function() {
+    tiempoRestante--;
+    actualizarBarraTiempo();
+
+    if (tiempoRestante <= 0) {
+      clearInterval(intervaloTiempo);
+      terminarRonda(false);
+    }
+  }, 1000);
+}
+
+function actualizarBarraTiempo() {
+  var porcentaje = (tiempoRestante / TIEMPO_RONDA) * 100;
+  var barra      = document.getElementById('barra-tiempo');
+  barra.style.width = porcentaje + '%';
+
+  if (porcentaje < 30) {
+    barra.style.background = 'linear-gradient(90deg, var(--rojo), #ff9900)';
+  } else if (porcentaje < 60) {
+    barra.style.background = 'linear-gradient(90deg, var(--amarillo), var(--verde))';
+  } else {
+    barra.style.background = 'linear-gradient(90deg, var(--verde), var(--amarillo))';
+  }
+
+  document.getElementById('texto-tiempo').textContent = '⏱ ' + tiempoRestante + 's';
+}
+
+/* ================================================
+   ADIVINANZA
+================================================ */
+
+function teclaRespuesta(e) {
+  if (e.key === 'Enter') enviarRespuesta();
+}
+
+function enviarRespuesta() {
+  var input    = document.getElementById('input-respuesta');
+  var respuesta = input.value.trim().toUpperCase();
+  input.value  = '';
+
+  if (!respuesta) return;
+
+  var historial = document.getElementById('historial-intentos');
+  var intento   = document.createElement('div');
+
+  if (respuesta === palabraActual.toUpperCase()) {
+    intento.className   = 'intento correcto';
+    intento.textContent = '✅ ¡CORRECTO! "' + respuesta + '"';
+
+    agregarLog('✅ ¡Adivinaron "' + palabraActual + '"!', true);
+
+    // Puntos: 5 al dibujante, 3 a los demás
+    jugadores[turnoActual].puntos += 5;
+    jugadores.forEach(function(j, i) {
+      if (i !== turnoActual) j.puntos += 3;
+    });
+
+    actualizarMarcador();
+    clearInterval(intervaloTiempo);
+    historial.prepend(intento);
+
+    setTimeout(function() { terminarRonda(true); }, 1100);
+
+  } else {
+    intento.className   = 'intento incorrecto';
+    intento.textContent = '❌ "' + respuesta + '"';
+    historial.prepend(intento);
+  }
+}
+
+/* ================================================
+   TERMINAR RONDA Y SIGUIENTE TURNO
+================================================ */
+
+function terminarRonda(adivinaron) {
+  dibujando = false;
+  clearInterval(intervaloTiempo);
+  clearInterval(intervaloPrevio);
+  document.getElementById('modal-dibujo').classList.remove('visible');
+  document.getElementById('modal-previo').classList.remove('visible');
+
+  if (!adivinaron) {
+    agregarLog('⏰ Se acabó el tiempo. Era: ' + palabraActual, true);
+  }
+
+  setTimeout(siguienteTurno, 450);
+}
+
+function saltarRonda() {
+  clearInterval(intervaloTiempo);
+  clearInterval(intervaloPrevio);
+  agregarLog('⏭️ Ronda saltada. Era: ' + palabraActual);
+  document.getElementById('modal-dibujo').classList.remove('visible');
+  document.getElementById('modal-previo').classList.remove('visible');
+  setTimeout(siguienteTurno, 350);
+}
+
+function siguienteTurno() {
+  turnoActual = (turnoActual + 1) % jugadores.length;
+  actualizarMarcador();
+  actualizarTurno();
+}
+
+/* ================================================
+   PANTALLA FINAL
+================================================ */
+
+function mostrarPantallaFinal() {
+  clearInterval(intervaloTiempo);
+  document.getElementById('modal-dibujo').classList.remove('visible');
+  document.getElementById('modal-evento').classList.remove('visible');
+  document.getElementById('pantalla-juego').style.display = 'none';
+  document.getElementById('pantalla-fin').style.display   = 'flex';
+
+  var ordenados = jugadores.slice().sort(function(a, b) { return b.puntos - a.puntos; });
+  var ganador   = ordenados[0];
+
+  document.getElementById('nombre-ganador').innerHTML =
+    '<span style="color:' + ganador.color + '">' + ganador.emoji + ' ' + ganador.nombre + '</span>';
+
+  var lista   = document.getElementById('lista-final');
+  lista.innerHTML = '';
+  var medallas    = ['🥇', '🥈', '🥉', '🏅'];
+
+  ordenados.forEach(function(j, i) {
+    var li       = document.createElement('li');
+    li.className = 'item-final';
+    li.innerHTML =
+      '<div class="punto-color" style="background:' + j.color + '"></div>' +
+      medallas[i] + ' ' + j.emoji + ' ' + j.nombre +
+      '<span style="margin-left:auto;color:var(--amarillo)">⭐' + j.puntos + ' pts</span>' +
+      '<span style="color:var(--gris);font-size:0.78rem">pos ' + j.posicion + '</span>';
+    lista.appendChild(li);
+  });
+}
+
+/* ================================================
+   ARRANCAR AL CARGAR LA PÁGINA
+================================================ */
+generarFilasJugadores();
+
+</script>
+</body>
+</html>
